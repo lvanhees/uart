@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 entity uart is
 
@@ -33,15 +34,14 @@ end entity uart;
 architecture str of uart is
 
   constant OVERSAMPLE      : integer := 16;
-  constant PRESCALE        : integer := integer(real(g_CLK_FREQ) / real(OVERSAMPLE * g_BAUD_RATE));
-  constant RX_PHASE_OFFSET : integer := integer(real(OVERSAMPLE) / 2.0);
+  constant PRESCALE        : integer := integer(ceil(real(g_CLK_FREQ) / real(OVERSAMPLE * g_BAUD_RATE)));
+  constant RX_PHASE_OFFSET : integer := integer(floor(real(PRESCALE) / 2.0));
 
   signal w_clk_en       : std_logic;
   signal r_uart_rx_meta : std_logic;
   signal r_uart_rx_sync : std_logic;
 
   -- counter is held is reset until start bit is detected
-  -- TODO extra control signal for half the bit period for synchronisation
   component uart_baudgen is
     generic (
       g_PRESCALE     : integer;         -- Desired baud rate

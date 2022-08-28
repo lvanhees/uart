@@ -94,7 +94,7 @@ begin  -- architecture behavioral
   -----------------------------------------------------------------------------
   -- UART Rx Test
   -----------------------------------------------------------------------------
-  p_uart_rx : process is
+  p_rx_stimulus : process is
   begin
     r_rxd <= '1';
     wait until r_rst = '0';
@@ -103,20 +103,20 @@ begin  -- architecture behavioral
     -- send a command to the UART
     wait until rising_edge(r_clk);
     uart_write(BIT_PERIOD, X"9A", r_rxd);
-    wait until rising_edge(r_clk);
+    wait;
+  end process p_rx_stimulus;
 
-    -- check that the correct command was received
-    -- if r_rx_dout = X"9A" then
-    --   report "Test Passed - Correct Byte Recevied" severity note;
-    -- else
-    --   report "Test Failed - Incorrect Byte Received" severity note;
-    -- end if;
+  p_dout_mon : process is
+  begin
+    wait until r_rx_idle = '0';
+    wait until r_rx_dout_valid = '1' or r_rx_idle = '1';
+    assert r_rx_dout_valid = '1' report "Output data valid has not been asserted" severity error;
     assert r_rx_dout = X"9A" report "Incorrect Rx byte received" severity note;
 
     -- assert false report "UART Test Finished!" severity failure;
     report "UART Test Finished" severity note;
     std.env.finish;
-  end process p_uart_rx;
+  end process p_dout_mon;
 
 end architecture behavioral;
 -------------------------------------------------------------------------------

@@ -29,11 +29,9 @@ architecture rtl of uart_rx is
 
   constant NUM_BITS        : integer := 8;
   constant BIT_COUNT_WIDTH : integer := integer(ceil(log2(real(NUM_BITS))));
-  -- constant BIT_COUNT_MAX   : unsigned (BIT_COUNT_WIDTH - 1 downto 0) := unsigned(NUM_BITS - 1);
 
   signal w_bit_clk        : std_logic;  -- rx clk_en (bit clock)
   signal r_rx_data        : std_logic_vector (NUM_BITS - 1 downto 0);
-  -- signal r_rx_bit_count   : unsigned (BIT_COUNT_WIDTH - 1 downto 0);
   signal r_rx_parity_bit  : std_logic;
   signal w_bits_remaining : std_logic;
 
@@ -50,11 +48,8 @@ architecture rtl of uart_rx is
     RX_RECEIVED
     );
 
-  signal r_state : t_state_rx;
-
-  signal r_fsm_idle     : std_logic;
-  signal r_fsm_stopbit  : std_logic;
-  signal r_fsm_databits : std_logic;
+  signal r_state    : t_state_rx;
+  signal r_fsm_idle : std_logic;
 
   component uart_baudgen is
     generic (
@@ -73,8 +68,9 @@ architecture rtl of uart_rx is
 
 begin  -- architecture rx
 
-  o_idle <= r_fsm_idle;
-  -- o_busy <= not(r_fsm_idle);
+  o_idle       <= r_fsm_idle;
+  r_fsm_idle   <= '1' when r_state = RX_IDLE     else '0';
+  o_dout_valid <= '1' when r_state = RX_RECEIVED else '0';
 
   -- UART oversampling (~16x) clock divider and clock enable flag
   u_rx_baudgen : component uart_baudgen
@@ -89,20 +85,16 @@ begin  -- architecture rx
       o_clk_en => w_bit_clk);
 
   -- receive data shift register
-  -- signal r_rx_data : std_logic_vector (NUM_BITS-1 downto 0);
-  -- signal r_rx_bit_count : unsigned (BIT_COUNT_WIDTH-1 downto 0);
   p_rx_shift : process (i_clk) is
   begin
     if rising_edge(i_clk) then
-      if w_bit_clk = '1' and r_fsm_databits = '1' then
-        r_rx_data <= r_rx_data(NUM_BITS - 2 downto 0) & i_rxd;
+      if w_bit_clk = '1' and r_state = RX_READ_BITS then
+        r_rx_data <= i_rxd & r_rx_data(r_rx_data'high downto r_rx_data'low + 1);
       end if;
     end if;
   end process p_rx_shift;
 
   o_dout <= r_rx_data;
-
-  -- with r_rx_bit_count select w_bits_remaining <= '0' when to_unsigned(NUM_BITS - 1, r_rx_bit_count'length), '1' when others;
 
   p_rx_count : process (i_clk) is
   begin
@@ -110,7 +102,7 @@ begin  -- architecture rx
       if i_rst = '1' then
         r_rx_bit_count <= 0;
       else
-        if w_bit_clk = '1' and r_fsm_databits = '1' then
+        if w_bit_clk = '1' and r_state = RX_READ_BITS then
           if r_rx_bit_count = t_bit_count'right then
             r_rx_bit_count <= 0;
           else
@@ -128,11 +120,8 @@ begin  -- architecture rx
       if i_rst = '1' then               -- synchronous reset (active high)
         r_state <= RX_IDLE;
       else
-        r_fsm_idle     <= '0';
-        r_fsm_databits <= '0';
         case r_state is
           when RX_IDLE =>
-            r_fsm_idle <= '1';
             -- low pulse on the receive line indicates start bit
             if i_rxd = '0' then
               r_state <= RX_CHECK_START;
@@ -146,7 +135,6 @@ begin  -- architecture rx
               end if;
             end if;
           when RX_READ_BITS =>
-            r_fsm_databits <= '1';
             if w_bit_clk = '1' then
               if r_rx_bit_count = t_bit_count'right then
                 r_state <= RX_CHECK_STOP;
