@@ -16,10 +16,8 @@ entity uart_rx is
     i_clk_en        : in  std_logic;
     i_rxd           : in  std_logic;
     o_dout          : out std_logic_vector (7 downto 0);
-    o_dout_valid    : out std_logic;
-    o_frame_error   : out std_logic;
-    o_overrun_error : out std_logic;
-    o_parity_error  : out std_logic;
+    o_valid    : out std_logic;
+    o_error   : out std_logic;
     o_idle          : out std_logic
     );
 
@@ -33,7 +31,6 @@ architecture rtl of uart_rx is
   signal w_bit_clk        : std_logic;  -- rx clk_en (bit clock)
   signal r_rx_data        : std_logic_vector (NUM_BITS - 1 downto 0);
   signal r_rx_parity_bit  : std_logic;
-  signal w_bits_remaining : std_logic;
 
   type t_bit_count is range 0 to NUM_BITS - 1;
   signal r_rx_bit_count : t_bit_count;
@@ -70,7 +67,7 @@ begin  -- architecture rx
 
   o_idle       <= r_fsm_idle;
   r_fsm_idle   <= '1' when r_state = RX_IDLE     else '0';
-  o_dout_valid <= '1' when r_state = RX_RECEIVED else '0';
+  o_valid <= '1' when r_state = RX_RECEIVED else '0';
 
   -- UART oversampling (~16x) clock divider and clock enable flag
   u_rx_baudgen : component uart_baudgen

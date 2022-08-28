@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
-[*] Sun Aug 28 13:11:05 2022
+[*] Sun Aug 28 15:41:25 2022
 [*]
 [dumpfile] "/home/liam/proj/uart/sim/uart_tb.ghw"
-[dumpfile_mtime] "Sun Aug 28 13:10:40 2022"
-[dumpfile_size] 250399
+[dumpfile_mtime] "Sun Aug 28 15:40:28 2022"
+[dumpfile_size] 168698
 [savefile] "/home/liam/proj/uart/sim/view.gtkw"
 [timestart] 0
 [size] 2560 1377
-[pos] -9 -33
-*-34.036674 2500000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-36.483406 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.uart_tb.
 [treeopen] top.uart_tb.dut.
@@ -21,9 +21,10 @@
 [sst_vpaned_height] 426
 @28
 top.uart_tb.r_rx_idle
-top.uart_tb.r_rx_parity_error
-top.uart_tb.r_rx_frame_error
-top.uart_tb.r_rx_dout_valid
+@29
+top.uart_tb.r_rx_error
+top.uart_tb.r_rx_valid
+@28
 top.uart_tb.r_rxd
 top.uart_tb.r_rst
 top.uart_tb.r_clk

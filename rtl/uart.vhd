@@ -11,22 +11,21 @@ entity uart is
 
   port (
     -- clock and reset
-    i_clk             : in  std_logic;  -- system clock
-    i_rst             : in  std_logic;  -- active high synchronous reset
+    i_clk      : in  std_logic;         -- system clock
+    i_rst      : in  std_logic;         -- active high synchronous reset
     -- uart interface
-    o_txd             : out std_logic;  -- serial transmit data
-    i_rxd             : in  std_logic;  -- serial receive data
+    o_txd      : out std_logic;         -- serial transmit data
+    i_rxd      : in  std_logic;         -- serial receive data
     -- user data input interface
-    i_tx_din          : in  std_logic_vector (7 downto 0);  -- byte to transmit
-    i_tx_din_valid    : in  std_logic;  -- assert to begin transmission
-    o_tx_din_ready    : out std_logic;  -- indicates transmitter is ready to send data
-    o_tx_idle         : out std_logic;  -- low when transmit line is idle
+    i_tx_din   : in  std_logic_vector (7 downto 0);  -- byte to transmit
+    i_tx_valid : in  std_logic;         -- assert to begin transmission
+    o_tx_ready : out std_logic;  -- indicates transmitter is ready to send data
+    o_tx_idle  : out std_logic;         -- low when transmit line is idle
     -- user data output interface
-    o_rx_dout         : out std_logic_vector (7 downto 0);  -- byte received
-    o_rx_dout_valid   : out std_logic;  -- indicates that a byte has been received
-    o_rx_frame_error  : out std_logic;  -- indicates error in received packet
-    o_rx_parity_error : out std_logic;  -- indicates parity error in received packed
-    o_rx_idle         : out std_logic   -- low when receive line is idle
+    o_rx_dout  : out std_logic_vector (7 downto 0);  -- byte received
+    o_rx_valid : out std_logic;  -- indicates that a byte has been received
+    o_rx_error : out std_logic;         -- indicates error in received packet
+    o_rx_idle  : out std_logic          -- low when receive line is idle
     );
 
 end entity uart;
@@ -65,18 +64,16 @@ architecture str of uart is
 
     port (
       -- clock and reset
-      i_clk           : in  std_logic;  -- system clock
-      i_rst           : in  std_logic;  -- active high synchronous reset
+      i_clk    : in  std_logic;         -- system clock
+      i_rst    : in  std_logic;         -- active high synchronous reset
       -- uart interface
-      i_clk_en        : in  std_logic;  -- uart clock enable
-      i_rxd           : in  std_logic;  -- serial receive data
+      i_clk_en : in  std_logic;         -- uart clock enable
+      i_rxd    : in  std_logic;         -- serial receive data
       -- user data output interface
-      o_dout          : out std_logic_vector (7 downto 0);  -- byte received
-      o_dout_valid    : out std_logic;  -- indicates that a byte has been received
-      o_frame_error   : out std_logic;  -- indicates error in received packet
-      o_overrun_error : out std_logic;  -- indicates fifo cannot keep up
-      o_parity_error  : out std_logic;  -- indicates parity error in received packed
-      o_idle          : out std_logic   -- low when receive line is idle
+      o_dout   : out std_logic_vector (7 downto 0);  -- byte received
+      o_valid  : out std_logic;  -- indicates that a byte has been received
+      o_error  : out std_logic;         -- indicates error in received packet
+      o_idle   : out std_logic          -- low when receive line is idle
       );
   end component uart_rx;
 
@@ -87,16 +84,16 @@ architecture str of uart is
 
     port (
       -- clock and reset
-      i_clk       : in  std_logic;      -- system clock
-      i_rst       : in  std_logic;      -- active high synchronous reset
+      i_clk    : in  std_logic;         -- system clock
+      i_rst    : in  std_logic;         -- active high synchronous reset
       -- uart interface
-      i_clk_en    : in  std_logic;      -- uart clock enable
-      o_txd       : out std_logic;      -- serial transmit data
+      i_clk_en : in  std_logic;         -- uart clock enable
+      o_txd    : out std_logic;         -- serial transmit data
       -- user data input interface
-      i_din       : in  std_logic_vector (7 downto 0);  -- byte to transmit
-      i_din_valid : in  std_logic;      -- assert to begin transmission
-      o_din_ready : out std_logic;  -- indicates transmitter is ready to send data
-      o_idle      : out std_logic       -- low when transmit line is idle
+      i_din    : in  std_logic_vector (7 downto 0);  -- byte to transmit
+      i_valid  : in  std_logic;         -- assert to begin transmission
+      o_ready  : out std_logic;  -- indicates transmitter is ready to send data
+      o_idle   : out std_logic          -- low when transmit line is idle
       );
   end component uart_tx;
 
@@ -129,28 +126,27 @@ begin  -- architecture str
       g_PRESCALE     => PRESCALE,
       g_PHASE_OFFSET => RX_PHASE_OFFSET)
     port map (
-      i_clk          => i_clk,
-      i_rst          => i_rst,
-      i_clk_en       => w_clk_en,
-      i_rxd          => r_uart_rx_sync,
-      o_dout         => o_rx_dout,
-      o_dout_valid   => o_rx_dout_valid,
-      o_frame_error  => o_rx_frame_error,
-      o_parity_error => o_rx_parity_error,
-      o_idle         => o_rx_idle);
+      i_clk    => i_clk,
+      i_rst    => i_rst,
+      i_clk_en => w_clk_en,
+      i_rxd    => r_uart_rx_sync,
+      o_dout   => o_rx_dout,
+      o_valid  => o_rx_valid,
+      o_error  => o_rx_error,
+      o_idle   => o_rx_idle);
 
   -- UART Transmitter
   u_uart_tx : component uart_tx
     generic map (
       g_PRESCALE => PRESCALE)
     port map (
-      i_clk       => i_clk,
-      i_rst       => i_rst,
-      i_clk_en    => w_clk_en,
-      o_txd       => o_txd,
-      i_din       => i_tx_din,
-      i_din_valid => i_tx_din_valid,
-      o_din_ready => o_tx_din_ready,
-      o_idle      => o_tx_idle);
+      i_clk    => i_clk,
+      i_rst    => i_rst,
+      i_clk_en => w_clk_en,
+      o_txd    => o_txd,
+      i_din    => i_tx_din,
+      i_valid  => i_tx_valid,
+      o_ready  => o_tx_ready,
+      o_idle   => o_tx_idle);
 
 end architecture str;
