@@ -8,8 +8,8 @@ use ieee.math_real.all;
 entity uart_baudgen is
 
   generic (
-    g_PRESCALE : natural := 8; -- clock divider factor
-    g_PHASE_OFFSET : natural := 3 -- indicate counter value to strobe output
+    g_PRESCALE     : natural := 8;      -- clock divider factor
+    g_PHASE_OFFSET : natural := 3   -- indicate counter value to strobe output
     );
 
   port (
@@ -29,7 +29,7 @@ architecture rtl of uart_baudgen is
   -----------------------------------------------------------------------------
   -- Internal signal declarations
   -----------------------------------------------------------------------------
-  signal clk_div_cnt : integer range 0 to g_PRESCALE - 1;
+  signal clk_div_cnt    : integer range 0 to g_PRESCALE - 1;
   signal clk_div_strobe : std_logic;
 
 begin  -- architecture rtl

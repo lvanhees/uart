@@ -104,7 +104,7 @@ begin  -- architecture behavioral
     wait;
   end process p_rx_stimulus;
 
-  p_dout_mon : process is
+  p_rx_dout_mon : process is
   begin
     wait until r_rx_idle = '0';
 
@@ -118,7 +118,14 @@ begin  -- architecture behavioral
     -- assert false report "UART Test Finished!" severity failure;
     report "UART Test Finished" severity note;
     std.env.finish;
-  end process p_dout_mon;
+  end process p_rx_dout_mon;
+
+  p_rx_error_mon : process is
+  begin
+    wait until r_rx_error = '1';
+    assert r_rx_error = '1' report "Receive frame error reported" severity error;
+    wait;
+  end process p_rx_error_mon;
 
 end architecture behavioral;
 -------------------------------------------------------------------------------

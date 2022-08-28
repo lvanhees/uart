@@ -11,14 +11,14 @@ entity uart_rx is
     );
 
   port (
-    i_clk           : in  std_logic;
-    i_rst           : in  std_logic;
-    i_clk_en        : in  std_logic;
-    i_rxd           : in  std_logic;
-    o_dout          : out std_logic_vector (7 downto 0);
-    o_valid    : out std_logic;
-    o_error   : out std_logic;
-    o_idle          : out std_logic
+    i_clk    : in  std_logic;
+    i_rst    : in  std_logic;
+    i_clk_en : in  std_logic;
+    i_rxd    : in  std_logic;
+    o_dout   : out std_logic_vector (7 downto 0);
+    o_valid  : out std_logic;
+    o_error  : out std_logic;
+    o_idle   : out std_logic
     );
 
 end entity uart_rx;
@@ -28,9 +28,9 @@ architecture rtl of uart_rx is
   constant NUM_BITS        : integer := 8;
   constant BIT_COUNT_WIDTH : integer := integer(ceil(log2(real(NUM_BITS))));
 
-  signal w_bit_clk        : std_logic;  -- rx clk_en (bit clock)
-  signal r_rx_data        : std_logic_vector (NUM_BITS - 1 downto 0);
-  signal r_rx_parity_bit  : std_logic;
+  signal w_bit_clk       : std_logic;   -- rx clk_en (bit clock)
+  signal r_rx_data       : std_logic_vector (NUM_BITS - 1 downto 0);
+  signal r_rx_parity_bit : std_logic;
 
   type t_bit_count is range 0 to NUM_BITS - 1;
   signal r_rx_bit_count : t_bit_count;
@@ -65,9 +65,10 @@ architecture rtl of uart_rx is
 
 begin  -- architecture rx
 
-  o_idle       <= r_fsm_idle;
-  r_fsm_idle   <= '1' when r_state = RX_IDLE     else '0';
-  o_valid <= '1' when r_state = RX_RECEIVED else '0';
+  o_idle     <= r_fsm_idle;
+  r_fsm_idle <= '1' when r_state = RX_IDLE     else '0';
+  o_valid    <= '1' when r_state = RX_RECEIVED else '0';
+  o_error    <= '1' when r_state = RX_ERROR    else '0';
 
   -- UART oversampling (~16x) clock divider and clock enable flag
   u_rx_baudgen : component uart_baudgen
