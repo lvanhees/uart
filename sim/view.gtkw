@@ -1,0 +1,45 @@
+[*]
+[*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
+[*] Sun Aug 28 13:11:05 2022
+[*]
+[dumpfile] "/home/liam/proj/uart/sim/uart_tb.ghw"
+[dumpfile_mtime] "Sun Aug 28 13:10:40 2022"
+[dumpfile_size] 250399
+[savefile] "/home/liam/proj/uart/sim/view.gtkw"
+[timestart] 0
+[size] 2560 1377
+[pos] -9 -33
+*-34.036674 2500000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.uart_tb.
+[treeopen] top.uart_tb.dut.
+[treeopen] top.uart_tb.dut.u_uart_rx.
+[treeopen] top.uart_tb.dut.u_uart_rx.u_rx_baudgen.
+[sst_width] 214
+[signals_width] 201
+[sst_expanded] 1
+[sst_vpaned_height] 426
+@28
+top.uart_tb.r_rx_idle
+top.uart_tb.r_rx_parity_error
+top.uart_tb.r_rx_frame_error
+top.uart_tb.r_rx_dout_valid
+top.uart_tb.r_rxd
+top.uart_tb.r_rst
+top.uart_tb.r_clk
+@22
+#{top.uart_tb.r_rx_dout[7:0]} top.uart_tb.r_rx_dout[7] top.uart_tb.r_rx_dout[6] top.uart_tb.r_rx_dout[5] top.uart_tb.r_rx_dout[4] top.uart_tb.r_rx_dout[3] top.uart_tb.r_rx_dout[2] top.uart_tb.r_rx_dout[1] top.uart_tb.r_rx_dout[0]
+@28
+top.uart_tb.dut.u_uart_baudgen.clk_div_strobe
+top.uart_tb.dut.u_uart_baudgen.o_clk_en
+top.uart_tb.dut.u_uart_baudgen.i_enable
+top.uart_tb.dut.u_uart_baudgen.i_clear
+top.uart_tb.dut.u_uart_rx.u_rx_baudgen.clk_div_strobe
+top.uart_tb.dut.u_uart_rx.u_rx_baudgen.o_clk_en
+top.uart_tb.dut.u_uart_rx.u_rx_baudgen.i_enable
+top.uart_tb.dut.u_uart_rx.u_rx_baudgen.i_clear
+@420
+top.uart_tb.dut.u_uart_rx.r_state
+top.uart_tb.dut.u_uart_rx.u_rx_baudgen.clk_div_cnt
+[pattern_trace] 1
+[pattern_trace] 0
