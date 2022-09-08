@@ -7,7 +7,8 @@ entity uart_rx is
 
   generic (
     g_PRESCALE     : integer := 16;
-    g_PHASE_OFFSET : integer := 8
+    g_PHASE_OFFSET : integer := 7;
+    g_PARITY_BIT   : string  := "none"  -- none, even, odd, mark, space
     );
 
   port (
@@ -28,9 +29,9 @@ architecture rtl of uart_rx is
   constant NUM_BITS        : integer := 8;
   constant BIT_COUNT_WIDTH : integer := integer(ceil(log2(real(NUM_BITS))));
 
-  signal w_bit_clk       : std_logic;   -- rx clk_en (bit clock)
-  signal r_rx_data       : std_logic_vector (NUM_BITS - 1 downto 0);
-  signal r_rx_parity_bit : std_logic;
+  signal w_bit_clk      : std_logic;    -- rx clk_en (bit clock)
+  signal r_rx_data      : std_logic_vector (NUM_BITS - 1 downto 0);
+  signal w_parity_error : std_logic;
 
   type t_bit_count is range 0 to NUM_BITS - 1;
   signal r_rx_bit_count : t_bit_count;
@@ -39,6 +40,7 @@ architecture rtl of uart_rx is
     RX_IDLE,
     RX_CHECK_START,
     RX_READ_BITS,
+    RX_CHECK_PARITY,
     RX_CHECK_STOP,
     RX_ERROR,
     RX_DELAY_RESTART,
@@ -70,7 +72,6 @@ begin  -- architecture rx
   o_valid    <= '1' when r_state = RX_RECEIVED else '0';
   o_error    <= '1' when r_state = RX_ERROR    else '0';
 
-  -- UART oversampling (~16x) clock divider and clock enable flag
   u_rx_baudgen : component uart_baudgen
     generic map (
       g_PRESCALE     => g_PRESCALE,
@@ -111,6 +112,18 @@ begin  -- architecture rx
     end if;
   end process p_rx_count;
 
+  g_parity_check : if g_PARITY_BIT = "none" generate
+    w_parity_error <= '0';
+  elsif g_PARITY_BIT = "even" generate
+    w_parity_error <= xor (r_rx_data & i_rxd);
+  elsif g_PARITY_BIT = "odd" generate
+    w_parity_error <= xnor (r_rx_data & i_rxd);
+  elsif g_PARITY_BIT = "mark" generate
+    w_parity_error <= not i_rxd;        -- should always be '1'
+  elsif g_PARITY_BIT = "space" generate
+    w_parity_error <= i_rxd;            -- should always be '0'
+  end generate g_parity_check;
+
 -- control rx state machine
   p_rx_fsm : process (i_clk) is
   begin  -- process p_uart_rx
@@ -135,8 +148,20 @@ begin  -- architecture rx
           when RX_READ_BITS =>
             if w_bit_clk = '1' then
               if r_rx_bit_count = t_bit_count'right then
-                r_state <= RX_CHECK_STOP;
+                r_state <= RX_CHECK_PARITY;
               end if;
+            end if;
+          when RX_CHECK_PARITY =>
+            if g_PARITY_BIT /= "none" then
+              if w_bit_clk = '1' then
+                if w_parity_error = '0' then
+                  r_state <= RX_CHECK_STOP;
+                else
+                  r_state <= RX_ERROR;
+                end if;
+              end if;
+            else
+              r_state <= RX_CHECK_STOP;
             end if;
           when RX_CHECK_STOP =>
             if w_bit_clk = '1' then

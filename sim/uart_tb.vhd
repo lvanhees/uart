@@ -9,12 +9,11 @@ end entity uart_tb;
 
 -------------------------------------------------------------------------------
 architecture behavioral of uart_tb is
-
   constant CLK_PULSE_WIDTH : time    := 50 ns;
   constant CLK_FREQ        : natural := 10000000;  -- 10 MHz
   constant BAUD_RATE       : natural := 9600;
-  -- constant BIT_PERIOD      : time    := integer(ceil(1.0 / real(BAUD_RATE))) * 1 us;
   constant BIT_PERIOD      : time    := 104 us;
+  constant PARITY_BIT      : string  := "even";
 
   -- component ports
   signal r_clk      : std_logic := '0';
@@ -35,7 +34,9 @@ architecture behavioral of uart_tb is
     uart_din                 : in  std_logic_vector (7 downto 0);
     signal uart_txd          : out std_logic
     ) is
+    variable parity : std_logic;
   begin
+    report "Sending byte: " & to_string(uart_din) severity note;
     -- send start bit
     uart_txd <= '0';
     wait for UART_BIT_PERIOD;
@@ -44,6 +45,14 @@ architecture behavioral of uart_tb is
       uart_txd <= uart_din(i);
       wait for UART_BIT_PERIOD;
     end loop;
+    -- send parity bit
+    report "Using parity mode: " & PARITY_BIT severity note;
+    if PARITY_BIT = "even" then
+      parity   := xor uart_din;
+      report "Sending parity bit: " & to_string(parity) severity note;
+      uart_txd <= parity;
+      wait for UART_BIT_PERIOD;
+    end if;
     -- send stop bit
     uart_txd <= '1';
     wait for UART_BIT_PERIOD;
@@ -53,9 +62,9 @@ begin  -- architecture behavioral
 
   dut : entity work.uart
     generic map (
-      g_CLK_FREQ  => CLK_FREQ,
-      g_BAUD_RATE => BAUD_RATE
-      )
+      g_CLK_FREQ   => CLK_FREQ,
+      g_BAUD_RATE  => BAUD_RATE,
+      g_PARITY_BIT => PARITY_BIT)
 
     port map (
       i_clk      => r_clk,
@@ -69,8 +78,7 @@ begin  -- architecture behavioral
       o_rx_dout  => r_rx_dout,
       o_rx_valid => r_rx_valid,
       o_rx_error => r_rx_error,
-      o_rx_idle  => r_rx_idle
-      );
+      o_rx_idle  => r_rx_idle);
 
   -- clock generation
   p_clock_gen : process is
@@ -94,6 +102,7 @@ begin  -- architecture behavioral
   -----------------------------------------------------------------------------
   p_rx_stimulus : process is
   begin
+    report "UART Test Started" severity note;
     r_rxd <= '1';
     wait until r_rst = '0';
     wait until rising_edge(r_clk);

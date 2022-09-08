@@ -8,8 +8,8 @@ use ieee.math_real.all;
 entity uart_baudgen is
 
   generic (
-    g_PRESCALE     : natural := 8;      -- clock divider factor
-    g_PHASE_OFFSET : natural := 3   -- indicate counter value to strobe output
+    g_PRESCALE     : natural := 16;     -- clock divider factor
+    g_PHASE_OFFSET : natural := 7    -- indicate counter value to strobe output
     );
 
   port (

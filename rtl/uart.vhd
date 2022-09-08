@@ -5,8 +5,9 @@ use ieee.math_real.all;
 entity uart is
 
   generic (
-    g_CLK_FREQ  : integer := 100E6;     -- system clock frequency [Hz]
-    g_BAUD_RATE : integer := 115200     -- buad rate setting
+    g_CLK_FREQ   : integer := 100E6;    -- system clock frequency [Hz]
+    g_BAUD_RATE  : integer := 115200;   -- buad rate setting
+    g_PARITY_BIT : string  := "none"    -- none, even, odd, mark, space
     );
 
   port (
@@ -33,8 +34,8 @@ end entity uart;
 architecture str of uart is
 
   constant OVERSAMPLE      : integer := 16;
-  constant PRESCALE        : integer := integer(ceil(real(g_CLK_FREQ) / real(OVERSAMPLE * g_BAUD_RATE)));
-  constant RX_PHASE_OFFSET : integer := integer(floor(real(PRESCALE) / 2.0));
+  constant PRESCALE        : integer := integer(round(real(g_CLK_FREQ) / real(OVERSAMPLE * g_BAUD_RATE)));
+  constant RX_PHASE_OFFSET : integer := integer(floor(real(OVERSAMPLE) / 2.0)) - 1;
 
   signal w_clk_en       : std_logic;
   signal r_uart_rx_meta : std_logic;
@@ -59,7 +60,8 @@ architecture str of uart is
   component uart_rx is
     generic (
       g_PRESCALE     : integer;         -- number of clocks per bit
-      g_PHASE_OFFSET : integer
+      g_PHASE_OFFSET : integer;
+      g_PARITY_BIT   : string
       );
 
     port (
@@ -102,7 +104,7 @@ begin  -- architecture str
   -- UART oversampling (~16x) clock divider and clock enable flag
   u_uart_baudgen : component uart_baudgen
     generic map (
-      g_PRESCALE     => OVERSAMPLE,
+      g_PRESCALE     => PRESCALE,
       g_PHASE_OFFSET => 0)
     port map (
       i_clk    => i_clk,
@@ -123,8 +125,9 @@ begin  -- architecture str
   -- UART Receiver
   u_uart_rx : component uart_rx
     generic map (
-      g_PRESCALE     => PRESCALE,
-      g_PHASE_OFFSET => RX_PHASE_OFFSET)
+      g_PRESCALE     => OVERSAMPLE,
+      g_PHASE_OFFSET => RX_PHASE_OFFSET,
+      g_PARITY_BIT   => g_PARITY_BIT)
     port map (
       i_clk    => i_clk,
       i_rst    => i_rst,
@@ -138,7 +141,7 @@ begin  -- architecture str
   -- UART Transmitter
   u_uart_tx : component uart_tx
     generic map (
-      g_PRESCALE => PRESCALE)
+      g_PRESCALE => OVERSAMPLE)
     port map (
       i_clk    => i_clk,
       i_rst    => i_rst,
