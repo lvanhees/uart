@@ -1,7 +1,7 @@
 RTLDIR=rtl
 SIMDIR=sim
 
-STOPTIME=1500us
+STOPTIME=2500us
 
 #VHDLSTD=93c
 VHDLSTD=08
@@ -25,6 +25,7 @@ run:
 anal:
 		$(GHDL) -a $(GHDLFLAGS) $(RTLDIR)/uart_baudgen.vhd
 		$(GHDL) -a $(GHDLFLAGS) $(RTLDIR)/uart_rx.vhd
+		$(GHDL) -a $(GHDLFLAGS) $(RTLDIR)/uart_tx.vhd
 		$(GHDL) -a $(GHDLFLAGS) $(RTLDIR)/uart.vhd
 		$(GHDL) -a $(GHDLFLAGS) $(SIMDIR)/uart_tb.vhd
 

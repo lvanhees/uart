@@ -25,8 +25,8 @@ end entity uart_rx;
 
 architecture rtl of uart_rx is
 
-  constant NUM_BITS        : integer := 8;
-  constant BIT_COUNT_WIDTH : integer := integer(ceil(log2(real(NUM_BITS))));
+  constant NUM_BITS : integer := 8;
+  -- constant BIT_COUNT_WIDTH : integer := integer(ceil(log2(real(NUM_BITS))));
 
   signal w_bit_clk      : std_logic;    -- rx clk_en (bit clock)
   signal r_rx_data      : std_logic_vector (NUM_BITS - 1 downto 0);
@@ -123,7 +123,7 @@ begin  -- architecture rx
     w_parity_error <= i_rxd;            -- should always be '0'
   end generate g_parity_check;
 
--- control rx state machine
+  -- control rx state machine
   p_rx_fsm : process (i_clk) is
   begin  -- process p_uart_rx
     if rising_edge(i_clk) then          -- rising clock edge
@@ -147,20 +147,20 @@ begin  -- architecture rx
           when RX_READ_BITS =>
             if w_bit_clk = '1' then
               if r_rx_bit_count = t_bit_count'right then
-                r_state <= RX_CHECK_PARITY;
+                if g_PARITY_BIT /= "none" then
+                  r_state <= RX_CHECK_PARITY;
+                else
+                  r_state <= RX_CHECK_STOP;
+                end if;
               end if;
             end if;
           when RX_CHECK_PARITY =>
-            if g_PARITY_BIT /= "none" then
-              if w_bit_clk = '1' then
-                if w_parity_error = '0' then
-                  r_state <= RX_CHECK_STOP;
-                else
-                  r_state <= RX_ERROR;
-                end if;
+            if w_bit_clk = '1' then
+              if w_parity_error = '0' then
+                r_state <= RX_CHECK_STOP;
+              else
+                r_state <= RX_ERROR;
               end if;
-            else
-              r_state <= RX_CHECK_STOP;
             end if;
           when RX_CHECK_STOP =>
             if w_bit_clk = '1' then

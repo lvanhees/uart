@@ -20,7 +20,7 @@ entity uart is
     -- user data input interface
     i_tx_din   : in  std_logic_vector (7 downto 0);  -- byte to transmit
     i_tx_valid : in  std_logic;         -- assert to begin transmission
-    o_tx_ready : out std_logic;  -- indicates transmitter is ready to send data
+    -- o_tx_ready : out std_logic;  -- indicates transmitter is ready to send data
     o_tx_idle  : out std_logic;         -- low when transmit line is idle
     -- user data output interface
     o_rx_dout  : out std_logic_vector (7 downto 0);  -- byte received
@@ -94,7 +94,7 @@ architecture str of uart is
       -- user data input interface
       i_din    : in  std_logic_vector (7 downto 0);  -- byte to transmit
       i_valid  : in  std_logic;         -- assert to begin transmission
-      o_ready  : out std_logic;  -- indicates transmitter is ready to send data
+      -- o_ready  : out std_logic;  -- indicates transmitter is ready to send data
       o_idle   : out std_logic          -- low when transmit line is idle
       );
   end component uart_tx;
@@ -149,7 +149,7 @@ begin  -- architecture str
       o_txd    => o_txd,
       i_din    => i_tx_din,
       i_valid  => i_tx_valid,
-      o_ready  => o_tx_ready,
+      -- o_ready  => o_tx_ready,
       o_idle   => o_tx_idle);
 
 end architecture str;

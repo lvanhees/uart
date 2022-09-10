@@ -18,12 +18,10 @@ architecture behavioral of uart_tb is
   -- component ports
   signal r_clk      : std_logic := '0';
   signal r_rst      : std_logic;
-  -- signal o_txd             : std_logic;
+  signal r_txd      : std_logic;
   signal r_rxd      : std_logic;
-  -- signal i_tx_din          : std_logic_vector (7 downto 0);
-  -- signal i_tx_valid    : std_logic;
-  -- signal o_tx_ready    : std_logic;
-  -- signal o_tx_idle         : std_logic;
+  -- signal r_tx_ready    : std_logic;
+  signal r_tx_idle  : std_logic;
   signal r_rx_dout  : std_logic_vector (7 downto 0);
   signal r_rx_valid : std_logic;
   signal r_rx_error : std_logic;
@@ -36,11 +34,11 @@ architecture behavioral of uart_tb is
     ) is
     variable parity : std_logic;
   begin
-    report "Sending byte: " & to_string(uart_din) severity note;
     -- send start bit
     uart_txd <= '0';
     wait for UART_BIT_PERIOD;
     -- send data bits
+    report "Sending byte: " & to_string(uart_din) severity note;
     for i in 0 to (uart_din'length - 1) loop
       uart_txd <= uart_din(i);
       wait for UART_BIT_PERIOD;
@@ -58,6 +56,15 @@ architecture behavioral of uart_tb is
     wait for UART_BIT_PERIOD;
   end procedure uart_write;
 
+  procedure uart_read (
+    constant UART_BIT_PERIOD :     time;
+    uart_rxd                 :     std_logic;
+    signal uart_dout         : out std_logic_vector (7 downto 0)
+    ) is
+  begin
+    null;
+  end procedure uart_read;
+
 begin  -- architecture behavioral
 
   dut : entity work.uart
@@ -69,12 +76,12 @@ begin  -- architecture behavioral
     port map (
       i_clk      => r_clk,
       i_rst      => r_rst,
-      o_txd      => open,
+      o_txd      => r_txd,
       i_rxd      => r_rxd,
-      i_tx_din   => (others => '0'),
-      i_tx_valid => '0',
-      o_tx_ready => open,
-      o_tx_idle  => open,
+      i_tx_din   => r_rx_dout,
+      i_tx_valid => r_rx_valid,
+      -- o_tx_ready => open,
+      o_tx_idle  => r_tx_idle,
       o_rx_dout  => r_rx_dout,
       o_rx_valid => r_rx_valid,
       o_rx_error => r_rx_error,
@@ -102,7 +109,6 @@ begin  -- architecture behavioral
   -----------------------------------------------------------------------------
   p_rx_stimulus : process is
   begin
-    report "UART Test Started" severity note;
     r_rxd <= '1';
     wait until r_rst = '0';
     wait until rising_edge(r_clk);
@@ -116,17 +122,16 @@ begin  -- architecture behavioral
   p_rx_dout_mon : process is
   begin
     wait until r_rx_idle = '0';
+    report "UART Rx Test Started" severity note;
 
     wait until r_rx_valid = '1' or r_rx_idle = '1';
     assert r_rx_valid = '1' report "Output data valid has not been asserted" severity error;
     assert r_rx_dout = X"9A" report "Incorrect Rx byte received" severity note;
 
     wait until r_rx_idle = '1';
-    wait until rising_edge(r_clk);
+    report "UART Rx Test Finished" severity note;
 
-    -- assert false report "UART Test Finished!" severity failure;
-    report "UART Test Finished" severity note;
-    std.env.finish;
+    wait;
   end process p_rx_dout_mon;
 
   p_rx_error_mon : process is
@@ -135,6 +140,24 @@ begin  -- architecture behavioral
     assert r_rx_error = '1' report "Receive frame error reported" severity error;
     wait;
   end process p_rx_error_mon;
+
+  -----------------------------------------------------------------------------
+  -- UART Tx Test
+  -----------------------------------------------------------------------------
+  p_txd_mon : process is
+  begin
+    -- wait until r_rx_valid = '1';
+    wait until r_tx_idle = '0';
+    report "UART Tx Test Started" severity note;
+
+    wait until r_tx_idle = '1';
+    wait until rising_edge(r_clk);
+
+    -- assert false report "UART Test Finished!" severity failure;
+    report "UART Tx Test Finished" severity note;
+    report "UART Test Finished" severity note;
+    std.env.finish;
+  end process p_txd_mon;
 
 end architecture behavioral;
 -------------------------------------------------------------------------------
