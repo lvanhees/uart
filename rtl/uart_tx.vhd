@@ -6,7 +6,8 @@ use ieee.math_real.all;
 entity uart_tx is
 
   generic (
-    g_PRESCALE : integer := 16
+    g_PRESCALE   : integer := 16;
+    g_PARITY_BIT : string  := "none"    -- none, even, odd, mark, space
     );
 
   port (
@@ -30,11 +31,13 @@ architecture rtl of uart_tx is
   signal w_bit_clk      : std_logic;    -- tx clk_en (bit clock)
   signal r_tx_data      : std_logic_vector (NUM_BITS - 1 downto 0);
   signal r_tx_bit_count : unsigned (BIT_COUNT_WIDTH - 1 downto 0);
+  signal w_parity_bit   : std_logic;
 
   type t_state_tx is (
     TX_IDLE,
     TX_SEND_START,
     TX_SEND_BITS,
+    TX_SEND_PARITY,
     TX_SEND_STOP,
     TX_DELAY_RESTART,
     TX_RECOVER
@@ -92,6 +95,18 @@ begin  -- architecture tx
     end if;
   end process p_tx_count;
 
+  g_parity_gen : if g_PARITY_BIT = "none" generate
+    w_parity_bit <= '0';
+  elsif g_PARITY_BIT = "even" generate
+    w_parity_bit <= xor r_tx_data;
+  elsif g_PARITY_BIT = "odd" generate
+    w_parity_bit <= xnor r_tx_data;
+  elsif g_PARITY_BIT = "mark" generate
+    w_parity_bit <= '1';                -- should always be '1'
+  elsif g_PARITY_BIT = "space" generate
+    w_parity_bit <= '0';                -- should always be '0'
+  end generate g_parity_gen;
+
   -- control tx state machine
   p_tx_fsm : process (i_clk) is
   begin
@@ -115,8 +130,17 @@ begin  -- architecture tx
             if w_bit_clk = '1' then
               o_txd <= r_tx_data(to_integer(r_tx_bit_count));
               if r_tx_bit_count = NUM_BITS - 1 then
-                r_state <= TX_SEND_STOP;
+                if g_PARITY_BIT /= "none" then
+                  r_state <= TX_SEND_PARITY;
+                else
+                  r_state <= TX_SEND_STOP;
+                end if;
               end if;
+            end if;
+          when TX_SEND_PARITY =>
+            if w_bit_clk = '1' then
+              o_txd   <= w_parity_bit;
+              r_state <= TX_SEND_STOP;
             end if;
           when TX_SEND_STOP =>
             if w_bit_clk = '1' then

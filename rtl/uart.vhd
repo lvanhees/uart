@@ -81,7 +81,8 @@ architecture str of uart is
 
   component uart_tx is
     generic (
-      g_PRESCALE : integer              -- number of clocks per bit
+      g_PRESCALE   : integer;           -- number of clocks per bit
+      g_PARITY_BIT : string
       );
 
     port (
@@ -141,7 +142,8 @@ begin  -- architecture str
   -- UART Transmitter
   u_uart_tx : component uart_tx
     generic map (
-      g_PRESCALE => OVERSAMPLE)
+      g_PRESCALE   => OVERSAMPLE,
+      g_PARITY_BIT => g_PARITY_BIT)
     port map (
       i_clk    => i_clk,
       i_rst    => i_rst,
