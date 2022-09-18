@@ -13,7 +13,7 @@ architecture behavioral of uart_tb is
   constant CLK_FREQ        : natural := 10000000;  -- 10 MHz
   constant BAUD_RATE       : natural := 9600;
   constant BIT_PERIOD      : time    := 104 us;
-  constant PARITY_BIT      : string  := "even";
+  constant PARITY_BIT      : string  := "none";
 
   -- component ports
   signal r_clk      : std_logic := '0';
@@ -26,6 +26,7 @@ architecture behavioral of uart_tb is
   signal r_rx_valid : std_logic;
   signal r_rx_error : std_logic;
   signal r_rx_idle  : std_logic;
+  signal r_tx_dout  : std_logic_vector (7 downto 0);
 
   procedure uart_write (
     constant UART_BIT_PERIOD :     time;  -- bit period
@@ -58,11 +59,23 @@ architecture behavioral of uart_tb is
 
   procedure uart_read (
     constant UART_BIT_PERIOD :     time;
-    uart_rxd                 :     std_logic;
+    signal uart_rxd          : in  std_logic;
     signal uart_dout         : out std_logic_vector (7 downto 0)
     ) is
   begin
-    null;
+    -- check start bit
+    wait until uart_rxd = '0';
+    wait for UART_BIT_PERIOD / 2;
+    -- data bits
+    wait for UART_BIT_PERIOD;
+    for i in 0 to (uart_dout'length - 1) loop
+      uart_dout(i) <= uart_rxd;
+      wait for UART_BIT_PERIOD;
+    end loop;
+    -- stop bit
+    if uart_rxd = '0' then
+      report "Invalid stop bit received!" severity failure;
+    end if;
   end procedure uart_read;
 
 begin  -- architecture behavioral
@@ -126,7 +139,7 @@ begin  -- architecture behavioral
 
     wait until r_rx_valid = '1' or r_rx_idle = '1';
     assert r_rx_valid = '1' report "Output data valid has not been asserted" severity error;
-    assert r_rx_dout = X"9A" report "Incorrect Rx byte received" severity note;
+    assert r_rx_dout = X"9A" report "Incorrect Rx byte received" severity error;
 
     wait until r_rx_idle = '1';
     report "UART Rx Test Finished" severity note;
@@ -149,6 +162,9 @@ begin  -- architecture behavioral
     -- wait until r_rx_valid = '1';
     wait until r_tx_idle = '0';
     report "UART Tx Test Started" severity note;
+
+    uart_read(BIT_PERIOD, r_txd, r_tx_dout);
+    assert r_tx_dout = X"9A" report "Incorrect Tx byte received" severity error;
 
     wait until r_tx_idle = '1';
     wait until rising_edge(r_clk);
